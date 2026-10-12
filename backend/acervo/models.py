@@ -47,7 +47,7 @@ class Obra(models.Model):
     edicao = models.CharField(max_length=50, blank=True, null=True)
     ano_publicacao = models.IntegerField(blank=True, null=True)
     volume = models.CharField(max_length=50, blank=True, null=True)
-    editora_id = models.ForeignKey(
+    editora = models.ForeignKey(
         Editora, on_delete=models.PROTECT, blank=True, null=True, related_name="obras"
     )
     classificacao = models.CharField(max_length=50, blank=True, null=True)
