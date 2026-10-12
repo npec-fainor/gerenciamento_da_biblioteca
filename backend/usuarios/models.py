@@ -35,7 +35,8 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
         BIBLIOTECARIO = "BIBLIOTECARIO", "Bibliotecário"
     name = models.CharField(max_length=150)
     email = models.EmailField("email address", unique=True)
-    password = models.CharField(max_length=120, db_column="senha_hash")
+    # Mantem o nome da coluna definido na modelagem original.
+    password = models.CharField(max_length=128, db_column="senha_hash")
     papel = models.CharField(max_length=20, choices=Papel.choices, default=Papel.BIBLIOTECARIO)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True, db_column="ativo")
