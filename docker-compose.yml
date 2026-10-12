@@ -5,15 +5,16 @@ services:
     container_name: biblioteca_db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: biblioteca
-      POSTGRES_USER: biblioteca_user
-      POSTGRES_PASSWORD: biblioteca_dev
+      POSTGRES_DB: ${DB_NAME:-biblioteca}
+      POSTGRES_USER: ${DB_USER:-biblioteca_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?defina DB_PASSWORD no arquivo .env}
     ports:
-      - "5432:5432"
+      # Publicada so no localhost. Em implantacao use o PostgreSQL centralizado.
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U biblioteca_user -d biblioteca"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
       timeout: 5s
       retries: 5
