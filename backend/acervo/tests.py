@@ -483,3 +483,23 @@ class CriacaoDeEntidadesTests(TestCase):
         autor.refresh_from_db()
 
         self.assertEqual(autor.nome, "Nome Atualizado")
+
+class DadosBibliograficosTests(TestCase):
+    def test_obra_guarda_isbn_edicao_ano_e_classificacao(self):
+        autor = Autor.objects.create(nome="Graciliano Ramos")
+        obra = Obra.objects.create(
+            titulo="Vidas Secas",
+            isbn="9788501012345",
+            edicao="3a",
+            ano_publicacao=1938,
+            classificacao="B869.3",
+        )
+        ObraAutor.objects.create(obra=obra, autor=autor)
+
+        obra_lida = Obra.objects.get(pk=obra.pk)
+
+        self.assertEqual(obra_lida.isbn, "9788501012345")
+        self.assertEqual(obra_lida.edicao, "3a")
+        self.assertEqual(obra_lida.ano_publicacao, 1938)
+        self.assertEqual(obra_lida.classificacao, "B869.3")
+        self.assertEqual(list(obra_lida.autores.all()), [autor])
