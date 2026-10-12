@@ -48,11 +48,11 @@ Preencha os valores:
 |---|---|
 | `DJANGO_SECRET_KEY` | Chave secreta do Django. Gere uma propria, nao reaproveite. |
 | `DEBUG` | `True` apenas em desenvolvimento. |
-| `DB_NAME` | Nome do banco. Deve ser igual a `POSTGRES_DB` do `docker-compose.yml`. |
-| `DB_USER` | Usuario do banco. Deve ser igual a `POSTGRES_USER` do `docker-compose.yml`. |
-| `DB_PASSWORD` | Senha do banco. Deve ser igual a `POSTGRES_PASSWORD` do `docker-compose.yml`. |
+| `DB_NAME` | Nome do banco. O Compose usa o mesmo valor em `POSTGRES_DB`. |
+| `DB_USER` | Usuario do banco. O Compose usa o mesmo valor em `POSTGRES_USER`. |
+| `DB_PASSWORD` | Senha do banco. O Compose usa o mesmo valor em `POSTGRES_PASSWORD`. |
 | `DB_HOST` | `localhost` quando o banco roda pelo Compose. |
-| `DB_PORT` | `5432`, a porta publicada pelo Compose. |
+| `DB_PORT` | `5432`, a porta publicada pelo Compose (apenas em `127.0.0.1`). |
 
 Para gerar uma `DJANGO_SECRET_KEY`:
 
@@ -60,9 +60,10 @@ Para gerar uma `DJANGO_SECRET_KEY`:
 python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 ```
 
-Atencao: `DB_NAME`, `DB_USER` e `DB_PASSWORD` do `.env` precisam bater com os valores
-do servico `db` em `docker-compose.yml`. Confira antes de subir o banco, porque o
-`.env.example` nao traz os mesmos valores do Compose por padrao.
+O `docker-compose.yml` le `DB_NAME`, `DB_USER` e `DB_PASSWORD` desse mesmo `.env`,
+entao Django e PostgreSQL usam sempre os mesmos valores. `DB_PASSWORD` e obrigatoria:
+sem ela o Compose nao sobe. Os valores do `.env.example` (`biblioteca_user` /
+`biblioteca_dev`) sao so para desenvolvimento local; troque a senha se quiser.
 
 ### 3. PostgreSQL com Docker Compose
 
@@ -112,6 +113,17 @@ python backend/manage.py test acervo usuarios --noinput
 O Django cria um banco temporario `test_<DB_NAME>` no mesmo servidor PostgreSQL e o
 remove no final. Os dados do banco de desenvolvimento nao sao alterados, mas o usuario
 do banco precisa de permissao para criar bancos (o usuario do Compose tem).
+
+## Desenvolvimento local x implantacao
+
+- **Local:** o PostgreSQL sobe pelo Compose e fica acessivel so na propria maquina
+  (`127.0.0.1`). Cada desenvolvedor tem seu banco, com dados proprios.
+- **Implantacao (R-015):** os funcionarios devem consultar a mesma base. Para isso o
+  Django de producao aponta para um unico PostgreSQL centralizado, definindo `DB_HOST`,
+  `DB_PORT`, `DB_NAME`, `DB_USER` e `DB_PASSWORD` no ambiente do servidor. Nao e
+  preciso mudar codigo, pois `settings.py` le essas variaveis. Esse servidor nao usa o
+  Compose de desenvolvimento e deve ter senha propria e acesso restrito pela rede.
+  Varios bancos locais independentes nao atendem o requisito.
 
 ## Problemas comuns
 
