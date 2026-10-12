@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate, get_user_model
+from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.test import TestCase, override_settings
 
@@ -96,3 +97,36 @@ class CampoSenhaTests(TestCase):
 
         self.assertTrue(usuario.password.startswith("scrypt$"))
         self.assertTrue(usuario.check_password("senha-segura-123"))
+
+
+class CamposObrigatoriosDeUsuarioTests(TestCase):
+    def test_banco_rejeita_email_nulo(self):
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            Usuario.objects.create(email=None, name="Ana", password="x")
+
+    def test_banco_rejeita_nome_nulo(self):
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            Usuario.objects.create(email="ana@exemplo.com", name=None, password="x")
+
+    def test_validacao_do_model_exige_nome_e_email(self):
+        with self.assertRaises(ValidationError) as contexto:
+            Usuario(email="", name="", password="x").full_clean()
+
+        self.assertIn("name", contexto.exception.message_dict)
+        self.assertIn("email", contexto.exception.message_dict)
+
+    def test_email_repetido_nao_cria_novo_usuario(self):
+        Usuario.objects.create_user(email="ana@exemplo.com", password="x", name="Ana")
+
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            Usuario.objects.create_user(email="ana@exemplo.com", password="y", name="Outra")
+
+        self.assertEqual(Usuario.objects.count(), 1)
+
+    def test_validacao_do_model_rejeita_email_repetido(self):
+        Usuario.objects.create_user(email="ana@exemplo.com", password="x", name="Ana")
+
+        with self.assertRaises(ValidationError) as contexto:
+            Usuario(email="ana@exemplo.com", name="Outra", password="y").full_clean()
+
+        self.assertIn("email", contexto.exception.message_dict)
