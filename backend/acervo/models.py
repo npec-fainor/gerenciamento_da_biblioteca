@@ -38,7 +38,9 @@ class Localizacao(models.Model):
         verbose_name_plural = "localizações"
 
     def __str__(self):
-        return f"{self.setor}/{self.estante}/{self.prateleira}"
+        # Todos os campos sao opcionais, entao ignora os que nao foram preenchidos
+        partes = [self.setor, self.estante, self.prateleira]
+        return "/".join(parte for parte in partes if parte)
 
 class Obra(models.Model):
     titulo = models.CharField(max_length=225)
